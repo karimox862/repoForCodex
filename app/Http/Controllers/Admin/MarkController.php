@@ -15,16 +15,16 @@ class MarkController extends Controller
         $module->load(['marks.student', 'professor.user']);
 
         $handle = fopen('php://temp', 'r+');
-        fputcsv($handle, ['Module Code', 'Module Title', 'Professor', 'Student Name', 'Student Email', 'Registration', 'Grade', 'Recheck Requested At']);
+        fputcsv($handle, ['Module Code', 'Module Title', 'Professor', 'Student Name', 'Student Email', 'Apogée Code', 'Grade', 'Recheck Requested At']);
 
         foreach ($module->marks as $mark) {
             fputcsv($handle, [
                 $module->code,
                 $module->title,
                 optional($module->professor?->user)->name,
-                $mark->student->name,
+                trim($mark->student->first_name . ' ' . $mark->student->last_name) ?: $mark->student->name,
                 $mark->student->email,
-                $mark->student->registration_number,
+                $mark->student->apogee_code,
                 $mark->grade,
                 optional($mark->recheck_requested_at)?->toDateTimeString(),
             ]);

@@ -27,7 +27,7 @@
                 <label class="block text-sm font-medium text-gray-700">Enrolled Students</label>
                 <select name="students[]" multiple size="8" class="mt-1 block w-full border rounded px-3 py-2">
                     @foreach ($students as $student)
-                        <option value="{{ $student->id }}" @selected(collect(old('students'))->contains($student->id))>{{ $student->name }} ({{ $student->registration_number }})</option>
+                        <option value="{{ $student->id }}" @selected(collect(old('students'))->contains($student->id))>{{ trim($student->first_name . ' ' . $student->last_name) ?: $student->name }} ({{ $student->apogee_code }})</option>
                     @endforeach
                 </select>
                 <p class="text-xs text-gray-500 mt-1">Hold Ctrl (Windows) or Command (Mac) to select multiple students.</p>

@@ -44,9 +44,11 @@ class AdminWorkflowTest extends TestCase
 
         $this->actingAs($this->admin)
             ->post(route('admin.students.store'), [
-                'name' => 'Student Admin',
+                'first_name' => 'Student',
+                'last_name' => 'Admin',
+                'apogee_code' => 'APO123',
+                'birth_date' => '2000-01-02',
                 'email' => 'student@example.com',
-                'registration_number' => 'REG123',
             ])
             ->assertRedirect(route('admin.students.index'));
 
