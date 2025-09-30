@@ -1,49 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name', 'Laravel') }}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.9/dist/tailwind.min.css">
-</head>
-<body class="bg-gray-100 min-h-screen">
-    <nav class="bg-white shadow mb-8">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-            <a href="/" class="text-xl font-semibold text-gray-800">{{ config('app.name', 'Laravel') }}</a>
-            @auth
-                <div class="space-x-4 text-sm">
-                    @if (auth()->user()->isProfessor())
-                        <a href="{{ route('professor.modules.index') }}" class="text-gray-700 hover:text-gray-900">My Modules</a>
-                    @endif
-                    @if (auth()->user()->isAdmin())
-                        <a href="{{ route('admin.professors.index') }}" class="text-gray-700 hover:text-gray-900">Professors</a>
-                        <a href="{{ route('admin.modules.index') }}" class="text-gray-700 hover:text-gray-900">Modules</a>
-                        <a href="{{ route('admin.students.index') }}" class="text-gray-700 hover:text-gray-900">Students</a>
-                    @endif
-                </div>
-            @endauth
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+
+        <title>{{ config('app.name', 'Laravel') }}</title>
+
+        <!-- Fonts -->
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+
+        <!-- Scripts -->
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    </head>
+    <body class="font-sans antialiased">
+        <div class="min-h-screen bg-gray-100">
+            @include('layouts.navigation')
+
+            <!-- Page Heading -->
+            @isset($header)
+                <header class="bg-white shadow">
+                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                        {{ $header }}
+                    </div>
+                </header>
+            @endisset
+
+            <!-- Page Content -->
+            <main>
+                {{ $slot }}
+            </main>
         </div>
-    </nav>
-
-    <main class="max-w-6xl mx-auto px-4">
-        @if (session('status'))
-            <div class="mb-4 rounded bg-green-100 border border-green-300 text-green-800 px-4 py-3">
-                {{ session('status') }}
-            </div>
-        @endif
-
-        @if ($errors->any())
-            <div class="mb-4 rounded bg-red-100 border border-red-300 text-red-800 px-4 py-3">
-                <ul class="list-disc list-inside">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        {{ $slot ?? '' }}
-        @yield('content')
-    </main>
-</body>
+    </body>
 </html>
