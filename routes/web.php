@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\MarkController as AdminMarkController;
 use App\Http\Controllers\Admin\ModuleController as AdminModuleController;
+use App\Http\Controllers\Admin\ModuleStudentImportController;
 use App\Http\Controllers\Admin\ProfessorController as AdminProfessorController;
 use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 use App\Http\Controllers\Professor\ModuleController as ProfessorModuleController;
@@ -27,6 +28,9 @@ Route::middleware(['auth', 'role:admin'])
     ->as('admin.')
     ->group(function (): void {
         Route::resource('modules', AdminModuleController::class)->except(['show']);
+
+        Route::post('modules/{module}/students/import', ModuleStudentImportController::class)
+            ->name('modules.students.import');
 
         Route::get('modules/{module}/report', [AdminMarkController::class, 'downloadReport'])
             ->name('modules.report');
