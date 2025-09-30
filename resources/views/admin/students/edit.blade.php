@@ -1,8 +1,9 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
+        <h1 class="text-2xl font-semibold leading-tight text-gray-800">Edit Student</h1>
+    </x-slot>
 
-@section('content')
     <div class="max-w-3xl mx-auto bg-white shadow rounded p-6">
-        <h1 class="text-2xl font-semibold mb-4">Edit Student</h1>
         <form method="POST" action="{{ route('admin.students.update', $student) }}" class="space-y-4">
             @csrf
             @method('PUT')
@@ -24,4 +25,4 @@
             </div>
         </form>
     </div>
-@endsection
+</x-app-layout>
