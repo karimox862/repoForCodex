@@ -1,8 +1,9 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="text-xl font-semibold leading-tight">Assigned Modules</h2>
+    </x-slot>
 
-@section('content')
     <div class="bg-white shadow rounded p-6">
-        <h1 class="text-2xl font-semibold mb-4">Assigned Modules</h1>
         @if ($modules->isEmpty())
             <p class="text-gray-600">You currently have no assigned modules.</p>
         @else
@@ -30,4 +31,4 @@
             </table>
         @endif
     </div>
-@endsection
+</x-app-layout>

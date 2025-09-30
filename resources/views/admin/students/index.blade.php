@@ -1,10 +1,10 @@
-@extends('layouts.app')
-
-@section('content')
-    <div class="flex justify-between items-center mb-4">
-        <h1 class="text-2xl font-semibold">Students</h1>
-        <a href="{{ route('admin.students.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded">New Student</a>
-    </div>
+<x-app-layout>
+    <x-slot name="header">
+        <div class="flex justify-between items-center">
+            <h2 class="text-xl font-semibold leading-tight">Students</h2>
+            <a href="{{ route('admin.students.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded">New Student</a>
+        </div>
+    </x-slot>
 
     <div class="bg-white shadow rounded">
         <table class="min-w-full divide-y divide-gray-200">
@@ -43,4 +43,4 @@
     <div class="mt-4">
         {{ $students->links() }}
     </div>
-@endsection
+</x-app-layout>
