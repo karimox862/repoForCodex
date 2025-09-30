@@ -1,15 +1,15 @@
-@extends('layouts.app')
-
-@section('content')
-    <div class="bg-white shadow rounded p-6">
-        <div class="flex justify-between items-center mb-6">
+<x-app-layout>
+    <x-slot name="header">
+        <div class="flex justify-between items-center">
             <div>
                 <h1 class="text-2xl font-semibold">{{ $module->code }} &middot; {{ $module->title }}</h1>
                 <p class="text-gray-600">Enrolled students can be graded with numeric marks or the literal <strong>ABI</strong>.</p>
             </div>
             <a href="{{ route('professor.modules.index') }}" class="text-sm text-indigo-600 hover:underline">&larr; Back to modules</a>
         </div>
+    </x-slot>
 
+    <div class="bg-white shadow rounded p-6">
         @if ($students->isEmpty())
             <p class="text-gray-600">No students are enrolled in this module yet.</p>
         @else
@@ -42,4 +42,4 @@
             </table>
         @endif
     </div>
-@endsection
+</x-app-layout>
