@@ -15,6 +15,24 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    @auth
+                        @if (Auth::user()->isAdmin())
+                            <x-nav-link :href="route('admin.modules.index')" :active="request()->routeIs('admin.modules.*')">
+                                {{ __('Modules') }}
+                            </x-nav-link>
+                            <x-nav-link :href="route('admin.students.index')" :active="request()->routeIs('admin.students.*')">
+                                {{ __('Students') }}
+                            </x-nav-link>
+                            <x-nav-link :href="route('admin.professors.index')" :active="request()->routeIs('admin.professors.*')">
+                                {{ __('Professors') }}
+                            </x-nav-link>
+                        @elseif (Auth::user()->isProfessor())
+                            <x-nav-link :href="route('professor.modules.index')" :active="request()->routeIs('professor.modules.*')">
+                                {{ __('My Modules') }}
+                            </x-nav-link>
+                        @endif
+                    @endauth
                 </div>
             </div>
 
@@ -86,6 +104,24 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            @auth
+                @if (Auth::user()->isAdmin())
+                    <x-responsive-nav-link :href="route('admin.modules.index')" :active="request()->routeIs('admin.modules.*')">
+                        {{ __('Modules') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.students.index')" :active="request()->routeIs('admin.students.*')">
+                        {{ __('Students') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.professors.index')" :active="request()->routeIs('admin.professors.*')">
+                        {{ __('Professors') }}
+                    </x-responsive-nav-link>
+                @elseif (Auth::user()->isProfessor())
+                    <x-responsive-nav-link :href="route('professor.modules.index')" :active="request()->routeIs('professor.modules.*')">
+                        {{ __('My Modules') }}
+                    </x-responsive-nav-link>
+                @endif
+            @endauth
         </div>
 
         <!-- Responsive Settings Options -->
