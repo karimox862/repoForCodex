@@ -1,8 +1,9 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
+        <h1 class="text-2xl font-semibold leading-tight text-gray-800">New Professor</h1>
+    </x-slot>
 
-@section('content')
     <div class="max-w-3xl mx-auto bg-white shadow rounded p-6">
-        <h1 class="text-2xl font-semibold mb-4">New Professor</h1>
         <form method="POST" action="{{ route('admin.professors.store') }}" class="space-y-4">
             @csrf
             <div>
@@ -27,4 +28,4 @@
             </div>
         </form>
     </div>
-@endsection
+</x-app-layout>
