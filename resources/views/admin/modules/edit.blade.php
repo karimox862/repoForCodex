@@ -3,6 +3,27 @@
         <h1 class="text-2xl font-semibold leading-tight text-gray-800">Edit Module</h1>
     </x-slot>
 
+    @if (session('status'))
+        <div class="max-w-4xl mx-auto mb-6">
+            <div class="rounded border border-green-200 bg-green-50 px-4 py-3 text-green-800">
+                {{ session('status') }}
+            </div>
+        </div>
+    @endif
+
+    @if ($errors->any())
+        <div class="max-w-4xl mx-auto mb-6">
+            <div class="rounded border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+                <p class="font-semibold">There were some problems with your submission:</p>
+                <ul class="mt-2 list-disc space-y-1 pl-5">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
+
     <div class="max-w-4xl mx-auto bg-white shadow rounded p-6 mb-6">
         <form method="POST" action="{{ route('admin.modules.update', $module) }}" class="space-y-4">
             @csrf
@@ -38,6 +59,56 @@
                 <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded">Update</button>
             </div>
         </form>
+    </div>
+
+    <div class="max-w-4xl mx-auto bg-white shadow rounded p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Import Students</h2>
+        <form method="POST"
+            action="{{ route('admin.modules.students.import', $module) }}"
+            enctype="multipart/form-data"
+            class="space-y-4">
+            @csrf
+            <div>
+                <label for="module-import-file" class="block text-sm font-medium text-gray-700">Upload roster</label>
+                <input type="file"
+                    name="file"
+                    id="module-import-file"
+                    accept=".xlsx,.csv"
+                    required
+                    class="mt-1 block w-full text-sm text-gray-700">
+                <p class="mt-1 text-xs text-gray-500">Upload an XLSX or CSV file starting at row 18. Columns A–D should contain the apogée code, last name, first name, and birth date.</p>
+                @error('file')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+            <div class="flex justify-end">
+                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded">Import students</button>
+            </div>
+        </form>
+
+        @if (session('import_summary'))
+            @php($summary = session('import_summary'))
+            <div class="mt-4 rounded border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+                <p class="font-medium">Last import summary</p>
+                <ul class="mt-2 space-y-1">
+                    <li><span class="font-semibold">Processed:</span> {{ $summary['processed'] }}</li>
+                    <li><span class="font-semibold">Created:</span> {{ $summary['created'] }}</li>
+                    <li><span class="font-semibold">Updated:</span> {{ $summary['updated'] }}</li>
+                    <li><span class="font-semibold">Linked:</span> {{ $summary['attached'] }}</li>
+                </ul>
+
+                @if (!empty($summary['errors'] ?? []))
+                    <div class="mt-3">
+                        <p class="font-semibold text-red-700">Issues</p>
+                        <ul class="mt-1 list-disc space-y-1 pl-5 text-red-700">
+                            @foreach ($summary['errors'] as $importError)
+                                <li>{{ $importError }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+            </div>
+        @endif
     </div>
 
     <div class="max-w-4xl mx-auto bg-white shadow rounded p-6">
