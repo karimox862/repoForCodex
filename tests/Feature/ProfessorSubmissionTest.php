@@ -37,9 +37,11 @@ class ProfessorSubmissionTest extends TestCase
         ]);
 
         $this->student = Student::create([
-            'name' => 'Student One',
+            'first_name' => 'Student',
+            'last_name' => 'One',
+            'apogee_code' => 'APO001',
+            'birth_date' => '2001-05-15',
             'email' => 'student1@example.com',
-            'registration_number' => 'R001',
         ]);
 
         $this->module->students()->attach($this->student);

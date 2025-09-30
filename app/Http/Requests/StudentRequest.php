@@ -12,23 +12,38 @@ class StudentRequest extends FormRequest
         return $this->user()?->isAdmin() ?? false;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $firstName = trim((string) $this->input('first_name'));
+        $lastName = trim((string) $this->input('last_name'));
+
+        $this->merge([
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'name' => trim($firstName . ' ' . $lastName) ?: null,
+        ]);
+    }
+
     public function rules(): array
     {
         $studentId = $this->route('student')?->id;
 
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'email',
-                Rule::unique('students', 'email')->ignore($studentId),
-            ],
-            'registration_number' => [
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'apogee_code' => [
                 'required',
                 'string',
                 'max:50',
-                Rule::unique('students', 'registration_number')->ignore($studentId),
+                Rule::unique('students', 'apogee_code')->ignore($studentId),
             ],
+            'birth_date' => ['nullable', 'date'],
+            'email' => [
+                'nullable',
+                'email',
+                Rule::unique('students', 'email')->ignore($studentId),
+            ],
+            'name' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

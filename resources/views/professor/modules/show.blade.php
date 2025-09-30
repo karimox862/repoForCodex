@@ -17,7 +17,7 @@
                 <thead>
                     <tr>
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registration</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Apogée Code</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Mark</th>
                         <th class="px-4 py-2"></th>
                     </tr>
@@ -26,8 +26,8 @@
                     @foreach ($students as $student)
                         @php($existing = $marks[$student->id] ?? null)
                         <tr>
-                            <td class="px-4 py-2 text-sm text-gray-700">{{ $student->name }}</td>
-                            <td class="px-4 py-2 text-sm text-gray-700">{{ $student->registration_number }}</td>
+                            <td class="px-4 py-2 text-sm text-gray-700">{{ trim($student->first_name . ' ' . $student->last_name) ?: $student->name }}</td>
+                            <td class="px-4 py-2 text-sm text-gray-700">{{ $student->apogee_code }}</td>
                             <td class="px-4 py-2 text-sm text-gray-700">{{ $existing?->grade ?? '—' }}</td>
                             <td class="px-4 py-2 text-sm">
                                 <form method="POST" action="{{ route('professor.modules.students.mark', [$module, $student]) }}" class="flex space-x-2 items-center">

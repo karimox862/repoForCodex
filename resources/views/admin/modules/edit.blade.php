@@ -29,7 +29,7 @@
                 @php($selectedStudents = collect(old('students', $module->students->pluck('id')->all())))
                 <select name="students[]" multiple size="8" class="mt-1 block w-full border rounded px-3 py-2">
                     @foreach ($students as $student)
-                        <option value="{{ $student->id }}" @selected($selectedStudents->contains($student->id))>{{ $student->name }} ({{ $student->registration_number }})</option>
+                        <option value="{{ $student->id }}" @selected($selectedStudents->contains($student->id))>{{ trim($student->first_name . ' ' . $student->last_name) ?: $student->name }} ({{ $student->apogee_code }})</option>
                     @endforeach
                 </select>
             </div>
@@ -61,7 +61,7 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     @foreach ($marks as $mark)
                         <tr>
-                            <td class="px-4 py-2 text-sm text-gray-700">{{ $mark->student->name }} ({{ $mark->student->registration_number }})</td>
+                            <td class="px-4 py-2 text-sm text-gray-700">{{ trim($mark->student->first_name . ' ' . $mark->student->last_name) ?: $mark->student->name }} ({{ $mark->student->apogee_code }})</td>
                             <td class="px-4 py-2 text-sm text-gray-700">{{ $mark->grade }}</td>
                             <td class="px-4 py-2 text-sm text-gray-700">{{ optional($mark->recheck_requested_at)?->diffForHumans() ?? 'No' }}</td>
                             <td class="px-4 py-2 text-sm text-right">
