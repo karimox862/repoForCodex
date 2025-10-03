@@ -76,7 +76,7 @@
                     accept=".xlsx,.csv"
                     required
                     class="mt-1 block w-full text-sm text-gray-700">
-                <p class="mt-1 text-xs text-gray-500">Upload an XLSX or CSV file starting at row 18. Columns A–D should contain the apogée code, last name, first name, and birth date.</p>
+                <p class="mt-1 text-xs text-gray-500">Upload an XLSX or CSV file with a header row containing the Apogee, Nom, Prenom, and Naissance columns.</p>
                 @error('file')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror

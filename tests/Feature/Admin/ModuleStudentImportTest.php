@@ -16,7 +16,7 @@ class ModuleStudentImportTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_admin_can_import_students_into_module(): void
+    public function test_admin_can_import_students_from_spreadsheet_with_header_row(): void
     {
         $admin = User::factory()->create([
             'role' => User::ROLE_ADMIN,
@@ -29,15 +29,19 @@ class ModuleStudentImportTest extends TestCase
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setCellValue('A18', 'APO001');
-        $sheet->setCellValue('B18', 'DOE');
-        $sheet->setCellValue('C18', 'john');
-        $sheet->setCellValue('D18', '2001-02-03');
-        $sheet->setCellValue('A19', 'APO002');
-        $sheet->setCellValue('B19', 'SMITH');
-        $sheet->setCellValue('C19', 'JANE');
-        $sheet->setCellValue('D19', ExcelDate::PHPToExcel(new \DateTimeImmutable('2002-04-15')));
-        $sheet->getStyle('D19')->getNumberFormat()->setFormatCode('yyyy-mm-dd');
+        $sheet->setCellValue('A1', 'Apogee');
+        $sheet->setCellValue('B1', 'Nom');
+        $sheet->setCellValue('C1', 'Prenom');
+        $sheet->setCellValue('D1', 'Naissance');
+        $sheet->setCellValue('A2', 'APO001');
+        $sheet->setCellValue('B2', 'DOE');
+        $sheet->setCellValue('C2', 'john');
+        $sheet->setCellValue('D2', '2001-02-03');
+        $sheet->setCellValue('A3', 'APO002');
+        $sheet->setCellValue('B3', 'SMITH');
+        $sheet->setCellValue('C3', 'JANE');
+        $sheet->setCellValue('D3', ExcelDate::PHPToExcel(new \DateTimeImmutable('2002-04-15')));
+        $sheet->getStyle('D3')->getNumberFormat()->setFormatCode('yyyy-mm-dd');
 
         $tempFile = tempnam(sys_get_temp_dir(), 'import');
         $writer = new Xlsx($spreadsheet);
@@ -59,6 +63,8 @@ class ModuleStudentImportTest extends TestCase
         $response->assertSessionHas('status');
         $response->assertSessionHas('import_summary.processed', 2);
         $response->assertSessionHas('import_summary.created', 2);
+        $response->assertSessionHas('import_summary.updated', 0);
+        $response->assertSessionHas('import_summary.attached', 2);
 
         @unlink($tempFile);
 
@@ -84,7 +90,7 @@ class ModuleStudentImportTest extends TestCase
         $this->assertTrue($module->students()->whereKey($studentTwo->id)->exists());
     }
 
-    public function test_admin_can_import_students_from_csv_without_extension(): void
+    public function test_admin_can_import_students_from_csv_with_header_row_and_updates_existing_student(): void
     {
         $admin = User::factory()->create([
             'role' => User::ROLE_ADMIN,
@@ -95,12 +101,20 @@ class ModuleStudentImportTest extends TestCase
             'title' => 'Advanced Programming',
         ]);
 
+        $existingStudent = Student::create([
+            'apogee_code' => 'APO010',
+            'last_name' => 'OLD',
+            'first_name' => 'Name',
+            'birth_date' => '2000-01-01',
+        ]);
+
         $tempFileBase = tempnam(sys_get_temp_dir(), 'import_csv');
         $csvFilePath = $tempFileBase . '.csv';
 
         rename($tempFileBase, $csvFilePath);
 
         $handle = fopen($csvFilePath, 'w');
+        fputcsv($handle, ['Apogee', 'Nom', 'Prenom', 'Naissance']);
         fputcsv($handle, ['APO010', 'DOE', 'john', '2001-02-03']);
         fputcsv($handle, ['APO011', 'SMITH', 'jane', '2002-04-15']);
         fclose($handle);
@@ -124,6 +138,9 @@ class ModuleStudentImportTest extends TestCase
         $response->assertRedirect(route('admin.modules.edit', $module));
         $response->assertSessionHas('status');
         $response->assertSessionHas('import_summary.processed', 2);
+        $response->assertSessionHas('import_summary.created', 1);
+        $response->assertSessionHas('import_summary.updated', 1);
+        $response->assertSessionHas('import_summary.attached', 2);
 
         @unlink($extensionlessPath);
 
@@ -139,13 +156,10 @@ class ModuleStudentImportTest extends TestCase
             'last_name' => 'SMITH',
         ]);
 
-        $studentOne = Student::where('apogee_code', 'APO010')->firstOrFail();
-        $studentTwo = Student::where('apogee_code', 'APO011')->firstOrFail();
+        $updatedStudent = $existingStudent->fresh();
 
-        $this->assertEquals('2001-02-03', $studentOne->birth_date?->toDateString());
-        $this->assertEquals('2002-04-15', $studentTwo->birth_date?->toDateString());
-
-        $this->assertTrue($module->students()->whereKey($studentOne->id)->exists());
-        $this->assertTrue($module->students()->whereKey($studentTwo->id)->exists());
+        $this->assertEquals('2001-02-03', $updatedStudent->birth_date?->toDateString());
+        $this->assertTrue($module->students()->whereKey($updatedStudent->id)->exists());
+        $this->assertTrue($module->students()->where('apogee_code', 'APO011')->exists());
     }
 }
