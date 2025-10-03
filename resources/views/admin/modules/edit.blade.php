@@ -116,6 +116,56 @@
             <h2 class="text-xl font-semibold">Recorded Marks</h2>
             <a href="{{ route('admin.modules.report', $module) }}" class="text-sm text-indigo-600 hover:underline">Download CSV report</a>
         </div>
+
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold mb-2">Import Marks</h3>
+            <form method="POST"
+                action="{{ route('admin.modules.marks.import', $module) }}"
+                enctype="multipart/form-data"
+                class="space-y-4 sm:space-y-0 sm:flex sm:items-end sm:space-x-4">
+                @csrf
+                <div class="flex-1">
+                    <label for="mark-import-file" class="block text-sm font-medium text-gray-700">Upload marks</label>
+                    <input type="file"
+                        name="file"
+                        id="mark-import-file"
+                        accept=".xls"
+                        required
+                        class="mt-1 block w-full text-sm text-gray-700">
+                    <p class="mt-1 text-xs text-gray-500">Provide a .xls file where column A contains the apogée code and column B contains the grade.</p>
+                    @error('file')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div>
+                    <button type="submit" class="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white rounded">Import marks</button>
+                </div>
+            </form>
+
+            @if (session('mark_import_summary'))
+                @php($markSummary = session('mark_import_summary'))
+                <div class="mt-4 rounded border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+                    <p class="font-medium">Last marks import</p>
+                    <ul class="mt-2 space-y-1">
+                        <li><span class="font-semibold">Processed:</span> {{ $markSummary['processed'] }}</li>
+                        <li><span class="font-semibold">Created:</span> {{ $markSummary['created'] }}</li>
+                        <li><span class="font-semibold">Updated:</span> {{ $markSummary['updated'] }}</li>
+                    </ul>
+
+                    @if (!empty($markSummary['errors'] ?? []))
+                        <div class="mt-3">
+                            <p class="font-semibold text-red-700">Issues</p>
+                            <ul class="mt-1 list-disc space-y-1 pl-5 text-red-700">
+                                @foreach ($markSummary['errors'] as $markImportError)
+                                    <li>{{ $markImportError }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                </div>
+            @endif
+        </div>
+
         @php($marks = $module->marks()->with('student')->orderBy('created_at', 'desc')->get())
         @if ($marks->isEmpty())
             <p class="text-gray-600">No marks have been submitted yet.</p>
