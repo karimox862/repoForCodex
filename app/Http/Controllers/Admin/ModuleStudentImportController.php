@@ -56,18 +56,43 @@ class ModuleStudentImportController extends Controller
         $attached = 0;
         $errors = [];
 
-        for ($rowIndex = 18; isset($rows[$rowIndex]); $rowIndex++) {
-            $apogeeCode = trim((string) ($rows[$rowIndex]['A'] ?? ''));
+        $columnMapping = [];
+
+        foreach ($rows as $rowIndex => $columns) {
+            if (!is_array($columns)) {
+                continue;
+            }
+
+            if ($this->rowIsEmpty($columns)) {
+                if ($processed > 0) {
+                    break;
+                }
+
+                continue;
+            }
+
+            if ($this->rowLooksLikeHeader($columns)) {
+                $columnMapping = $this->buildHeaderColumnMapping($columns) + $columnMapping;
+
+                continue;
+            }
+
+            $apogeeColumn = $this->resolveColumnKey($columnMapping, $columns, 'apogee_code', 0);
+            $apogeeCode = trim((string) ($columns[$apogeeColumn] ?? ''));
 
             if ($apogeeCode === '') {
-                break;
+                continue;
             }
 
             $processed++;
 
-            $lastName = $this->normalizeLastName($rows[$rowIndex]['B'] ?? '');
-            $firstName = $this->normalizeFirstName($rows[$rowIndex]['C'] ?? '');
-            $birthDateRaw = $rows[$rowIndex]['D'] ?? null;
+            $lastNameColumn = $this->resolveColumnKey($columnMapping, $columns, 'last_name', 1);
+            $firstNameColumn = $this->resolveColumnKey($columnMapping, $columns, 'first_name', 2);
+            $birthDateColumn = $this->resolveColumnKey($columnMapping, $columns, 'birth_date', 3);
+
+            $lastName = $this->normalizeLastName($columns[$lastNameColumn] ?? '');
+            $firstName = $this->normalizeFirstName($columns[$firstNameColumn] ?? '');
+            $birthDateRaw = $columns[$birthDateColumn] ?? null;
 
             try {
                 $birthDate = $this->normalizeBirthDate($birthDateRaw);
@@ -109,7 +134,7 @@ class ModuleStudentImportController extends Controller
 
         if ($processed === 0) {
             return redirect()->route('admin.modules.edit', $module)
-                ->withErrors(['file' => 'No student rows were found starting at row 18 in the uploaded file.']);
+                ->withErrors(['file' => 'No student rows were found beneath the header row or before the first blank row in the uploaded file.']);
         }
 
         $summary = compact('processed', 'created', 'updated', 'attached');
@@ -157,5 +182,83 @@ class ModuleStudentImportController extends Controller
         }
 
         return CarbonImmutable::parse((string) $value)->format('Y-m-d');
+    }
+
+    private function rowIsEmpty(array $row): bool
+    {
+        foreach ($row as $value) {
+            if (trim((string) $value) !== '') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function rowLooksLikeHeader(array $row): bool
+    {
+        $firstColumnKey = $this->getColumnKey($row, 0);
+
+        if ($firstColumnKey === null) {
+            return false;
+        }
+
+        return $this->normalizeHeaderTitle($row[$firstColumnKey] ?? null) === 'apogee_code';
+    }
+
+    /**
+     * @return array<string, string|int>
+     */
+    private function buildHeaderColumnMapping(array $row): array
+    {
+        $mapping = [];
+
+        foreach ($row as $columnKey => $value) {
+            $field = $this->normalizeHeaderTitle($value);
+
+            if ($field !== null && !isset($mapping[$field])) {
+                $mapping[$field] = $columnKey;
+            }
+        }
+
+        return $mapping;
+    }
+
+    private function normalizeHeaderTitle(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = Str::of((string) $value)
+            ->ascii()
+            ->lower()
+            ->squish()
+            ->replaceMatches('/[^a-z]/', '')
+            ->value();
+
+        return match ($normalized) {
+            'apogee', 'codeapogee', 'apogeecode' => 'apogee_code',
+            'nom' => 'last_name',
+            'prenom' => 'first_name',
+            'naissance', 'datenaissance', 'datedenaissance' => 'birth_date',
+            default => null,
+        };
+    }
+
+    private function getColumnKey(array $row, int $offset): string|int|null
+    {
+        $keys = array_keys($row);
+
+        return $keys[$offset] ?? null;
+    }
+
+    private function resolveColumnKey(array $columnMapping, array $row, string $field, int $position): string|int|null
+    {
+        if (isset($columnMapping[$field])) {
+            return $columnMapping[$field];
+        }
+
+        return $this->getColumnKey($row, $position);
     }
 }
