@@ -7,6 +7,7 @@ use App\Models\Student;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\HtmlString;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -161,5 +162,81 @@ class ModuleStudentImportTest extends TestCase
         $this->assertEquals('2001-02-03', $updatedStudent->birth_date?->toDateString());
         $this->assertTrue($module->students()->whereKey($updatedStudent->id)->exists());
         $this->assertTrue($module->students()->where('apogee_code', 'APO011')->exists());
+    }
+
+    public function test_import_populates_labels_when_label_column_is_present(): void
+    {
+        $admin = User::factory()->create([
+            'role' => User::ROLE_ADMIN,
+        ]);
+
+        $module = Module::create([
+            'code' => 'CS301',
+            'title' => 'Data Structures',
+        ]);
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setCellValue('A1', 'Apogee');
+        $sheet->setCellValue('B1', 'Nom');
+        $sheet->setCellValue('C1', 'Prenom');
+        $sheet->setCellValue('D1', 'Naissance');
+        $sheet->setCellValue('E1', 'Label');
+        $sheet->setCellValue('A2', 'APO100');
+        $sheet->setCellValue('B2', 'DOE');
+        $sheet->setCellValue('C2', 'Jane');
+        $sheet->setCellValue('D2', '2001-01-01');
+        $sheet->setCellValue('E2', 'Group Alpha');
+        $sheet->setCellValue('A3', 'APO101');
+        $sheet->setCellValue('B3', 'SMITH');
+        $sheet->setCellValue('C3', 'John');
+        $sheet->setCellValue('D3', '2001-02-02');
+        $sheet->setCellValue('E3', '');
+
+        $tempFile = tempnam(sys_get_temp_dir(), 'import');
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($tempFile);
+        $uploadedFile = new UploadedFile(
+            $tempFile,
+            'students-with-labels.xlsx',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            null,
+            true
+        );
+
+        $response = $this->actingAs($admin)->post(
+            route('admin.modules.students.import', $module),
+            ['file' => $uploadedFile]
+        );
+
+        @unlink($tempFile);
+
+        $response->assertRedirect(route('admin.modules.edit', $module));
+
+        $studentWithLabel = Student::where('apogee_code', 'APO100')->firstOrFail();
+        $studentWithoutLabel = Student::where('apogee_code', 'APO101')->firstOrFail();
+
+        $this->assertDatabaseHas('module_student', [
+            'module_id' => $module->id,
+            'student_id' => $studentWithLabel->id,
+            'label' => 'Group Alpha',
+        ]);
+
+        $this->assertDatabaseHas('module_student', [
+            'module_id' => $module->id,
+            'student_id' => $studentWithoutLabel->id,
+            'label' => null,
+        ]);
+
+        app()->instance(\Illuminate\Foundation\Vite::class, new class extends \Illuminate\Foundation\Vite {
+            public function __invoke($entrypoints, $buildDirectory = null)
+            {
+                return new HtmlString('');
+            }
+        });
+
+        $editResponse = $this->actingAs($admin)->get(route('admin.modules.edit', $module));
+        $editResponse->assertOk();
+        $editResponse->assertSee('Group Alpha');
     }
 }

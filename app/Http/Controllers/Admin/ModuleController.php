@@ -31,10 +31,11 @@ class ModuleController extends Controller
     {
         $data = $request->validated();
         $studentIds = $data['students'] ?? [];
-        unset($data['students']);
+        $studentLabels = $data['student_labels'] ?? [];
+        unset($data['students'], $data['student_labels']);
 
         $module = Module::create($data);
-        $module->students()->sync($studentIds);
+        $module->students()->sync($this->mapStudentsToLabels($studentIds, $studentLabels));
 
         return redirect()->route('admin.modules.index')->with('status', 'Module created successfully.');
     }
@@ -52,12 +53,35 @@ class ModuleController extends Controller
     {
         $data = $request->validated();
         $studentIds = $data['students'] ?? [];
-        unset($data['students']);
+        $studentLabels = $data['student_labels'] ?? [];
+        unset($data['students'], $data['student_labels']);
 
         $module->update($data);
-        $module->students()->sync($studentIds);
+        $module->students()->sync($this->mapStudentsToLabels($studentIds, $studentLabels));
 
         return redirect()->route('admin.modules.index')->with('status', 'Module updated successfully.');
+    }
+
+    /**
+     * @param  array<int, int|string>  $studentIds
+     * @param  array<int|string, mixed>  $studentLabels
+     * @return array<int, array{label: string|null}>
+     */
+    private function mapStudentsToLabels(array $studentIds, array $studentLabels): array
+    {
+        $syncData = [];
+
+        foreach ($studentIds as $studentId) {
+            $label = $studentLabels[$studentId] ?? null;
+
+            if (is_string($label)) {
+                $label = trim($label);
+            }
+
+            $syncData[$studentId] = ['label' => $label === '' ? null : $label];
+        }
+
+        return $syncData;
     }
 
     public function destroy(Module $module): RedirectResponse

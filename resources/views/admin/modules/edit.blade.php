@@ -45,14 +45,69 @@
                     @endforeach
                 </select>
             </div>
+            @php
+                $selectedStudents = collect(old('students', $module->students->pluck('id')->all()));
+                $selectedStudentIds = $selectedStudents
+                    ->filter(fn ($id) => $id !== null && $id !== '')
+                    ->map(fn ($id) => (int) $id)
+                    ->unique()
+                    ->values();
+                $studentsById = $students->keyBy('id');
+                $moduleStudentsById = $module->students->keyBy('id');
+            @endphp
             <div>
-                <label class="block text-sm font-medium text-gray-700">Enrolled Students</label>
-                @php($selectedStudents = collect(old('students', $module->students->pluck('id')->all())))
+                <label class="block text-sm font-medium text-gray-700">Manage Enrolled Students</label>
                 <select name="students[]" multiple size="8" class="mt-1 block w-full border rounded px-3 py-2">
                     @foreach ($students as $student)
                         <option value="{{ $student->id }}" @selected($selectedStudents->contains($student->id))>{{ trim($student->first_name . ' ' . $student->last_name) ?: $student->name }} ({{ $student->apogee_code }})</option>
                     @endforeach
                 </select>
+                <p class="text-xs text-gray-500 mt-1">Hold Ctrl (Windows) or Command (Mac) to select multiple students.</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Student Labels</label>
+                @if ($selectedStudentIds->isEmpty())
+                    <p class="mt-2 text-sm text-gray-600">No students are currently enrolled in this module.</p>
+                @else
+                    <div class="mt-2 overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Label</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                @foreach ($selectedStudentIds as $studentId)
+                                    @php
+                                        $student = $studentsById->get($studentId);
+                                    @endphp
+                                    @continue(!$student)
+                                    @php
+                                        $pivot = $moduleStudentsById->get($studentId);
+                                        $labelValue = old('student_labels.' . $studentId, optional($pivot)->pivot->label);
+                                    @endphp
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm text-gray-700">
+                                            {{ trim($student->first_name . ' ' . $student->last_name) ?: $student->name }}<br>
+                                            <span class="text-xs text-gray-500">{{ $student->apogee_code }}</span>
+                                        </td>
+                                        <td class="px-4 py-2 text-sm text-gray-700">
+                                            <input type="text"
+                                                name="student_labels[{{ $studentId }}]"
+                                                value="{{ $labelValue }}"
+                                                class="mt-1 block w-full border rounded px-3 py-2"
+                                                placeholder="Optional label">
+                                            @error('student_labels.' . $studentId)
+                                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                            @enderror
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
             </div>
             <div class="flex justify-end space-x-2">
                 <a href="{{ route('admin.modules.index') }}" class="px-4 py-2 bg-gray-200 rounded">Cancel</a>
