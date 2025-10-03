@@ -25,7 +25,14 @@ class ModuleStudentImportController extends Controller
         }
 
         try {
-            $reader = IOFactory::createReaderForFile($uploadedFile->getRealPath());
+            $extension = strtolower((string) $uploadedFile->getClientOriginalExtension());
+            $readerType = match ($extension) {
+                'xlsx' => 'Xlsx',
+                'csv' => 'Csv',
+                default => 'Xlsx',
+            };
+
+            $reader = IOFactory::createReader($readerType);
             $reader->setReadDataOnly(true);
             $spreadsheet = $reader->load($uploadedFile->getRealPath());
         } catch (Throwable $exception) {

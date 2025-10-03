@@ -83,4 +83,69 @@ class ModuleStudentImportTest extends TestCase
         $this->assertTrue($module->students()->whereKey($studentOne->id)->exists());
         $this->assertTrue($module->students()->whereKey($studentTwo->id)->exists());
     }
+
+    public function test_admin_can_import_students_from_csv_without_extension(): void
+    {
+        $admin = User::factory()->create([
+            'role' => User::ROLE_ADMIN,
+        ]);
+
+        $module = Module::create([
+            'code' => 'CS201',
+            'title' => 'Advanced Programming',
+        ]);
+
+        $tempFileBase = tempnam(sys_get_temp_dir(), 'import_csv');
+        $csvFilePath = $tempFileBase . '.csv';
+
+        rename($tempFileBase, $csvFilePath);
+
+        $handle = fopen($csvFilePath, 'w');
+        fputcsv($handle, ['APO010', 'DOE', 'john', '2001-02-03']);
+        fputcsv($handle, ['APO011', 'SMITH', 'jane', '2002-04-15']);
+        fclose($handle);
+
+        $extensionlessPath = $tempFileBase;
+        rename($csvFilePath, $extensionlessPath);
+
+        $uploadedFile = new UploadedFile(
+            $extensionlessPath,
+            'students.csv',
+            'text/csv',
+            null,
+            true
+        );
+
+        $response = $this->actingAs($admin)->post(
+            route('admin.modules.students.import', $module),
+            ['file' => $uploadedFile]
+        );
+
+        $response->assertRedirect(route('admin.modules.edit', $module));
+        $response->assertSessionHas('status');
+        $response->assertSessionHas('import_summary.processed', 2);
+
+        @unlink($extensionlessPath);
+
+        $this->assertDatabaseHas('students', [
+            'apogee_code' => 'APO010',
+            'first_name' => 'John',
+            'last_name' => 'DOE',
+        ]);
+
+        $this->assertDatabaseHas('students', [
+            'apogee_code' => 'APO011',
+            'first_name' => 'Jane',
+            'last_name' => 'SMITH',
+        ]);
+
+        $studentOne = Student::where('apogee_code', 'APO010')->firstOrFail();
+        $studentTwo = Student::where('apogee_code', 'APO011')->firstOrFail();
+
+        $this->assertEquals('2001-02-03', $studentOne->birth_date?->toDateString());
+        $this->assertEquals('2002-04-15', $studentTwo->birth_date?->toDateString());
+
+        $this->assertTrue($module->students()->whereKey($studentOne->id)->exists());
+        $this->assertTrue($module->students()->whereKey($studentTwo->id)->exists());
+    }
 }
