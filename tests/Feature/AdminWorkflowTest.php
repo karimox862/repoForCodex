@@ -61,12 +61,16 @@ class AdminWorkflowTest extends TestCase
                 'title' => 'Calculus',
                 'professor_id' => $professor->id,
                 'students' => [$student->id],
+                'student_labels' => [
+                    $student->id => 'Group A',
+                ],
             ])
             ->assertRedirect(route('admin.modules.index'));
 
         $module = Module::with('students')->first();
         $this->assertNotNull($module);
         $this->assertTrue($module->students->contains($student));
+        $this->assertSame('Group A', $module->students->firstWhere('id', $student->id)?->pivot->label);
 
         $mark = Mark::create([
             'module_id' => $module->id,

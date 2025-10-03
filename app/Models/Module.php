@@ -25,7 +25,9 @@ class Module extends Model
 
     public function students(): BelongsToMany
     {
-        return $this->belongsToMany(Student::class)->withTimestamps();
+        return $this->belongsToMany(Student::class)
+            ->withPivot('label')
+            ->withTimestamps();
     }
 
     public function marks(): HasMany

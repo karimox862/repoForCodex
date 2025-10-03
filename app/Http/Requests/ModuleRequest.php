@@ -27,6 +27,8 @@ class ModuleRequest extends FormRequest
             'professor_id' => ['nullable', 'exists:professors,id'],
             'students' => ['nullable', 'array'],
             'students.*' => ['integer', 'exists:students,id'],
+            'student_labels' => ['nullable', 'array'],
+            'student_labels.*' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

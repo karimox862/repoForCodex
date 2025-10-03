@@ -89,6 +89,7 @@ class ModuleStudentImportController extends Controller
             $lastNameColumn = $this->resolveColumnKey($columnMapping, $columns, 'last_name', 1);
             $firstNameColumn = $this->resolveColumnKey($columnMapping, $columns, 'first_name', 2);
             $birthDateColumn = $this->resolveColumnKey($columnMapping, $columns, 'birth_date', 3);
+            $labelColumn = $columnMapping['label'] ?? null;
 
             $lastName = $this->normalizeLastName($columns[$lastNameColumn] ?? '');
             $firstName = $this->normalizeFirstName($columns[$firstNameColumn] ?? '');
@@ -129,7 +130,21 @@ class ModuleStudentImportController extends Controller
                 $existingAttachments[] = $student->id;
             }
 
-            $module->students()->syncWithoutDetaching([$student->id]);
+            if ($labelColumn !== null) {
+                $rawLabel = $columns[$labelColumn] ?? null;
+
+                if (is_string($rawLabel)) {
+                    $rawLabel = trim($rawLabel);
+                }
+
+                $label = ($rawLabel === null || $rawLabel === '') ? null : (string) $rawLabel;
+
+                $module->students()->syncWithoutDetaching([
+                    $student->id => ['label' => $label],
+                ]);
+            } else {
+                $module->students()->syncWithoutDetaching([$student->id]);
+            }
         }
 
         if ($processed === 0) {
@@ -242,6 +257,7 @@ class ModuleStudentImportController extends Controller
             'nom' => 'last_name',
             'prenom' => 'first_name',
             'naissance', 'datenaissance', 'datedenaissance' => 'birth_date',
+            'label' => 'label',
             default => null,
         };
     }
