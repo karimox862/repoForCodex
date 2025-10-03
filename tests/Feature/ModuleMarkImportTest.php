@@ -114,6 +114,73 @@ class ModuleMarkImportTest extends TestCase
         $this->assertNull($existingMark->fresh()->recheck_requested_at);
     }
 
+    public function test_admin_can_import_marks_when_temp_file_has_no_extension(): void
+    {
+        $module = Module::create([
+            'code' => 'BIO101',
+            'title' => 'Biology',
+        ]);
+
+        $student = Student::create([
+            'apogee_code' => 'APO123',
+            'first_name' => 'Charlie',
+            'last_name' => 'Example',
+            'email' => 'charlie@example.com',
+        ]);
+
+        $module->students()->sync([$student->id]);
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setCellValue('A1', 'Apogee');
+        $sheet->setCellValue('B1', 'Grade');
+        $sheet->setCellValue('A2', $student->apogee_code);
+        $sheet->setCellValue('B2', '18');
+
+        $writer = IOFactory::createWriter($spreadsheet, 'Xls');
+        ob_start();
+        $writer->save('php://output');
+        $xlsContents = ob_get_clean() ?: '';
+
+        $fakeUpload = UploadedFile::fake()->createWithContent('marks.xls', $xlsContents);
+
+        $temporaryPath = tempnam(sys_get_temp_dir(), 'laravel-upload-');
+        if ($temporaryPath === false) {
+            $this->fail('Failed to create a temporary file for the upload simulation.');
+        }
+
+        if (! unlink($temporaryPath)) {
+            $this->fail('Failed to remove placeholder temporary file.');
+        }
+
+        if (! rename($fakeUpload->getRealPath(), $temporaryPath)) {
+            $this->fail('Failed to move the fake upload to the extensionless path.');
+        }
+
+        $file = new UploadedFile(
+            $temporaryPath,
+            $fakeUpload->getClientOriginalName(),
+            $fakeUpload->getClientMimeType(),
+            null,
+            true
+        );
+
+        $response = $this->actingAs($this->admin)
+            ->from(route('admin.modules.edit', $module))
+            ->post(route('admin.modules.marks.import', $module), [
+                'file' => $file,
+            ]);
+
+        $response->assertRedirect(route('admin.modules.edit', $module));
+        $response->assertSessionHas('status');
+
+        $this->assertDatabaseHas('marks', [
+            'module_id' => $module->id,
+            'student_id' => $student->id,
+            'grade' => '18',
+        ]);
+    }
+
     public function test_import_requires_xls_file(): void
     {
         $module = Module::create([
