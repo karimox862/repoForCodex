@@ -1,61 +1,153 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# ClipDarija
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+ClipDarija is a local-first highlight finder concept made for Moroccan streamers. The current MVP provides a polished workspace for selecting a recording, choosing highlight signals, configuring clip duration and count, and reviewing a generated shortlist.
 
-## About Laravel
+## Run locally
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+```bash
+composer install
+npm install
+cp .env.example .env
+php artisan key:generate
+npm run build
+php artisan serve
+```
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Visit `http://127.0.0.1:8000`.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Fastest deployment: Vercel (no Git required)
 
-## Learning Laravel
+The included `vercel.json` tells Vercel to run `npm run build:static` and publish
+the generated `dist/` folder. On Vercel's free Hobby plan this static prototype
+does not need a server or database.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+1. Install [Node.js](https://nodejs.org/) if `node --version` does not work.
+2. Open Terminal (macOS/Linux) or PowerShell (Windows) in this project folder.
+3. Run:
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+   ```bash
+   npm install
+   npx vercel
+   ```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+4. A browser opens so you can create or sign in to a Vercel account. Back in the
+   terminal, accept the defaults. When asked whether to modify project settings,
+   answer **No** because `vercel.json` already has the correct settings.
+5. Vercel prints a preview URL. Make it the permanent production website with:
 
-## Laravel Sponsors
+   ```bash
+   npx vercel --prod
+   ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+For later updates, return to the project folder and run `npx vercel --prod`
+again. This method uploads the project directly and does not require GitHub.
 
-### Premium Partners
+## Vercel with GitHub automatic updates
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Use this method if you want every future push to deploy automatically.
 
-## Contributing
+### 1. Create an empty GitHub repository
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+1. Sign in at [github.com](https://github.com/).
+2. Click **+ → New repository**.
+3. Name it `clipdarija`, choose **Public**, and do **not** add a README,
+   `.gitignore`, or license.
+4. Click **Create repository**, then copy the HTTPS URL shown by GitHub. It will
+   look like `https://github.com/YOUR-USERNAME/clipdarija.git`.
 
-## Code of Conduct
+### 2. Push this project
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+In a terminal opened inside this project, run the commands below. Replace the
+example URL with the URL copied from GitHub:
 
-## Security Vulnerabilities
+```bash
+git status
+git remote add origin https://github.com/YOUR-USERNAME/clipdarija.git
+git push -u origin HEAD:main
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+If `git remote add origin` says that `origin` already exists, use this instead:
 
-## License
+```bash
+git remote set-url origin https://github.com/YOUR-USERNAME/clipdarija.git
+git push -u origin HEAD:main
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+GitHub may open a browser login window. Complete it; GitHub account passwords
+are not accepted directly in the terminal. Refresh the repository page after the
+push and the files should appear.
+
+### 3. Import it into Vercel
+
+1. Sign in at [vercel.com](https://vercel.com/) using GitHub.
+2. Click **Add New → Project**, find `clipdarija`, and click **Import**.
+3. Leave **Framework Preset** as **Other**. Vercel reads these values from
+   `vercel.json`:
+   - Build command: `npm run build:static`
+   - Output directory: `dist`
+4. No environment variables are needed. Click **Deploy**.
+
+Vercel displays the live `.vercel.app` address when the build finishes. Future
+pushes to `main` deploy automatically:
+
+```bash
+git add .
+git commit -m "Describe your update"
+git push
+```
+
+## Deploy free with GitHub Pages
+
+ClipDarija's current workspace runs entirely in the browser, so it can be hosted
+on GitHub Pages for free without a card, server, database, or sleeping service.
+The included GitHub Actions workflow builds and publishes it automatically.
+
+1. Push this branch to a GitHub repository.
+2. Open **Settings → Pages** in that repository.
+3. Under **Build and deployment → Source**, choose **GitHub Actions**.
+4. Open **Actions**, select **Deploy ClipDarija to GitHub Pages**, and click
+   **Run workflow**. A push to `work`, `main`, or `master` also triggers it.
+
+The deployment job displays the public URL when it finishes. For a repository
+named `clipdarija`, it normally looks like
+`https://YOUR-USERNAME.github.io/clipdarija/`. Subsequent pushes update the site
+automatically.
+
+To preview the exact static deployment locally:
+
+```bash
+npm ci
+npm run build:static
+npx serve dist
+```
+
+The generated `dist/` directory has no PHP dependency and can also be dragged
+onto any static host.
+
+### Optional: run the full Laravel image locally
+
+```bash
+docker build -t clipdarija .
+docker run --rm -p 8080:80 \
+  -e APP_KEY="$(php artisan key:generate --show)" \
+  clipdarija
+```
+
+Visit `http://127.0.0.1:8080`; the container health endpoint is available at
+`http://127.0.0.1:8080/up`.
+
+## Current prototype flow
+
+1. Choose or drag an MP4, MOV, or MKV recording into the workspace.
+2. Select the moments to prioritize: reactions, chess events, or chat moments.
+3. Configure clip length, number of candidates, and Darija captions.
+4. Run the interactive analysis demo and review candidate clips.
+
+The interface is intentionally local-first. Actual Whisper transcription, audio analysis, FFmpeg cutting, and export processing are the next backend integration milestone; the current analysis and export actions demonstrate the complete product flow without sending video anywhere.
+
+## Development
+
+```bash
+npm run dev
+php artisan test
+```

@@ -14,6 +14,9 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertStatus(200);
+        $response->assertStatus(200)
+            ->assertSee('Your best moments')
+            ->assertSee('Drop your stream recording')
+            ->assertSee('Find my best clips');
     }
 }

@@ -4,6 +4,7 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
+        "build:static": "npm run build && node scripts/build-static.mjs",
         "dev": "vite"
     },
     "devDependencies": {
